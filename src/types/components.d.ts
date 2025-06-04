@@ -43,4 +43,29 @@ declare module 'mathjs' {
   export function parse(expr: MathExpression): EvalFunction;
   export function parse(exprs: MathExpression[]): EvalFunction[];
   export function compile(expr: MathExpression): EvalFunction;
+}
+
+declare namespace $3Dmol {
+  interface GLViewer {
+    clear(): void;
+    addModel(data: string, format: string): Molecule;
+    setStyle(selector: any, style: any): void;
+    zoomTo(): void;
+    render(): void;
+  }
+
+  interface Molecule {
+    getFormula(): string;
+    getAtomCount(): number;
+    getBondCount(): number;
+  }
+
+  interface ViewerOptions {
+    backgroundColor?: string;
+    antialias?: boolean;
+    defaultcolors?: any;
+  }
+
+  function createViewer(element: HTMLElement, options?: ViewerOptions): GLViewer;
+  const rasmolElementColors: any;
 } 

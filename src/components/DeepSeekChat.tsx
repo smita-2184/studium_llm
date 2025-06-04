@@ -5,6 +5,7 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import { Volume2, VolumeX } from 'lucide-react';
+import { BlockMath } from 'react-katex';
 
 interface Particle {
   x: number;
@@ -263,7 +264,12 @@ function ChatMessage({ message, isStreaming }: ChatMessageProps) {
             ),
           }}
         >
-          {message.content}
+          {message.content.split('$').map((part, i) => {
+            if (i % 2 === 1) {
+              return <BlockMath key={i} math={part} />;
+            }
+            return <span key={i}>{part}</span>;
+          })}
         </ReactMarkdown>
 
         {message.thoughts && !isStreaming && (
@@ -430,12 +436,15 @@ export function DeepSeekChat() {
           messages: [...prev.messages.slice(0, -1), streamingMessage]
         }));
       });
+
+      return streamingMessage;
     } catch (error) {
       console.error('Failed to send message:', error);
       setState(prev => ({
         ...prev,
         error: error instanceof Error ? error.message : 'Failed to send message'
       }));
+      return null;
     } finally {
       setState(prev => ({ ...prev, isLoading: false }));
     }

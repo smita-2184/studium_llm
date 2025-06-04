@@ -39,6 +39,27 @@ interface MathResult {
   balancedEquation?: string;
 }
 
+interface Exercise {
+  id: string;
+  type: 'algebra' | 'calculus' | 'geometry';
+  question: string;
+  answer: string;
+  solution: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  points: number;
+  completed?: boolean;
+}
+
+interface ExerciseState {
+  exercises: Exercise[];
+  currentExercise: Exercise | null;
+  userAnswer: string;
+  feedback: string;
+  score: number;
+  loading: boolean;
+  error: string | null;
+}
+
 const MATH_EXAMPLES = [
   { label: 'Solve equation', example: 'solve x^2 + 2x + 1 = 0' },
   { label: 'Calculate derivative', example: 'derivative of x^3 + 2x with respect to x' },

@@ -5,6 +5,37 @@ import { useEffect } from 'react';
 
 type ViewStyle = 'stick' | 'sphere' | 'cartoon' | 'line' | 'cross';
 
+interface Atom {
+  element: string;
+  x: number;
+  y: number;
+  z: number;
+  color: string;
+  radius: number;
+}
+
+interface Bond {
+  start: number;
+  end: number;
+  order: number;
+  color: string;
+}
+
+interface Molecule {
+  atoms: Atom[];
+  bonds: Bond[];
+  name: string;
+  formula: string;
+}
+
+interface MoleculeState {
+  molecule: Molecule | null;
+  rotation: { x: number; y: number; z: number };
+  scale: number;
+  loading: boolean;
+  error: string | null;
+}
+
 interface MoleculeInfo {
   iupacName?: string;
   molecularWeight?: string;
@@ -25,8 +56,14 @@ const EXAMPLE_MOLECULES = [
 ];
 
 export function MoleculeViewer() {
+  const [state, setState] = useState<MoleculeState>({
+    molecule: null,
+    rotation: { x: 0, y: 0, z: 0 },
+    scale: 1,
+    loading: false,
+    error: null
+  });
   const [molecule, setMolecule] = useState('');
-  const [loading, setLoading] = useState(false);
   const [viewStyle, setViewStyle] = useState<ViewStyle>('stick');
   const [moleculeInfo, setMoleculeInfo] = useState<MoleculeInfo | null>(null);
   const [dimensions, setDimensions] = useState({ width: window.innerWidth - 700, height: 600 });
@@ -49,10 +86,20 @@ export function MoleculeViewer() {
     document.body.appendChild(script);
 
     script.onload = () => {
-      initViewer();
+      if (viewerRef.current) {
+        const options = {
+          backgroundColor: 'white',
+          antialias: true,
+          defaultcolors: $3Dmol.rasmolElementColors
+        };
+        viewer.current = $3Dmol.createViewer(viewerRef.current, options);
+      }
     };
 
     return () => {
+      if (viewer.current) {
+        viewer.current.clear();
+      }
       document.body.removeChild(script);
     };
   }, []);
@@ -111,49 +158,35 @@ export function MoleculeViewer() {
     }
   };
 
-  const showMolecule = async (name: string) => {
+  const showMolecule = async (moleculeData: string) => {
     if (!viewer.current) return;
     
-    setLoading(true);
+    setState(prev => ({ ...prev, loading: true }));
     try {
       // Clear previous molecule
       viewer.current.clear();
-
-      // Fetch molecule info
-      await fetchMoleculeInfo(name);
-
-      // Fetch molecule data from PubChem
-      const response = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${name}/SDF`);
-      const data = await response.text();
-
-      // Add molecule to viewer
-      viewer.current.addModel(data, "sdf");
       
-      // Apply selected style
-      switch (viewStyle) {
-        case 'stick':
-          viewer.current.setStyle({}, { stick: {} });
-          break;
-        case 'sphere':
-          viewer.current.setStyle({}, { sphere: {} });
-          break;
-        case 'cartoon':
-          viewer.current.setStyle({}, { cartoon: {} });
-          break;
-        case 'line':
-          viewer.current.setStyle({}, { line: {} });
-          break;
-        case 'cross':
-          viewer.current.setStyle({}, { cross: {} });
-          break;
-      }
-      
+      // Load new molecule
+      const mol = await viewer.current.addModel(moleculeData, 'mol');
+      viewer.current.setStyle({}, { stick: {} });
       viewer.current.zoomTo();
       viewer.current.render();
+      
+      // Update molecule info
+      const info = {
+        formula: mol.getFormula(),
+        atoms: mol.getAtomCount(),
+        bonds: mol.getBondCount()
+      };
+      setMoleculeInfo(info);
     } catch (error) {
       console.error('Error loading molecule:', error);
+      setState(prev => ({
+        ...prev,
+        error: error instanceof Error ? error.message : 'Failed to load molecule'
+      }));
     } finally {
-      setLoading(false);
+      setState(prev => ({ ...prev, loading: false }));
     }
   };
 
@@ -168,10 +201,44 @@ export function MoleculeViewer() {
     onHeightResize: (height) => setDimensions(prev => ({ ...prev, height }))
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!molecule.trim()) return;
-    showMolecule(molecule.trim());
+
+    try {
+      // Fetch molecule data from PubChem
+      const response = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${molecule}/SDF`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch molecule data');
+      }
+      const data = await response.text();
+      
+      // Show molecule in viewer
+      await showMolecule(data);
+    } catch (error) {
+      console.error('Error:', error);
+      setState(prev => ({
+        ...prev,
+        error: error instanceof Error ? error.message : 'Failed to load molecule'
+      }));
+    }
+  };
+
+  const handleRotation = (axis: 'x' | 'y' | 'z', value: number) => {
+    setState(prev => ({
+      ...prev,
+      rotation: {
+        ...prev.rotation,
+        [axis]: value
+      }
+    }));
+  };
+
+  const handleScale = (value: number) => {
+    setState(prev => ({
+      ...prev,
+      scale: value
+    }));
   };
 
   return (
@@ -191,10 +258,10 @@ export function MoleculeViewer() {
             </div>
             <button
               type="submit"
-              disabled={loading || !molecule.trim()}
+              disabled={state.loading || !molecule.trim()}
               className="px-6 py-3 bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:hover:bg-blue-500 flex items-center gap-2 min-w-[140px] justify-center"
             >
-              {loading ? (
+              {state.loading ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin" />
                   Loading...
