@@ -39,6 +39,25 @@ interface DerivationStep {
   };
 }
 
+interface VectorProps {
+  type: "function" | "text" | "vector";
+  content?: string;
+  fn?: (x: number) => number;
+  start?: [number, number];
+  end?: [number, number];
+  x?: number;
+  y?: number;
+  angle?: number;
+  scale?: number;
+}
+
+interface PointProps {
+  x: number;
+  y: number;
+  color: string;
+  size?: number;
+}
+
 const EXAMPLE_DERIVATIONS = [
   {
     title: 'Product Rule',

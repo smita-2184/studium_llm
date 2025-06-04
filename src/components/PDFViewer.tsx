@@ -130,21 +130,21 @@ export function PDFViewer({ file, onTextExtracted }: PDFViewerProps) {
           <button
             onClick={() => changePage(-1)}
             disabled={pageNumber <= 1}
-            className="p-1 rounded-lg hover:bg-[#3A3A3C] disabled:opacity-50"
+            className="px-3 py-1 bg-blue-500 rounded-lg disabled:opacity-50"
           >
-            <ChevronLeft className="h-5 w-5" />
+            Previous
           </button>
           
           <span className="text-sm">
-            Page {pageNumber} of {numPages}
+            Page {pageNumber.toString()} of {numPages?.toString() || '?'}
           </span>
           
           <button
             onClick={() => changePage(1)}
             disabled={pageNumber >= numPages}
-            className="p-1 rounded-lg hover:bg-[#3A3A3C] disabled:opacity-50"
+            className="px-3 py-1 bg-blue-500 rounded-lg disabled:opacity-50"
           >
-            <ChevronRight className="h-5 w-5" />
+            Next
           </button>
         </div>
 
