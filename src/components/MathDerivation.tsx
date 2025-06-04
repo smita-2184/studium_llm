@@ -58,6 +58,27 @@ interface PointProps {
   size?: number;
 }
 
+interface AnimationConfig {
+  type: 'mechanism' | 'collision' | 'orbital';
+  frames: {
+    molecules: {
+      positions: [number, number, number][];
+      rotations: [number, number, number][];
+      bonds: [number, number][];
+      elements: string[];
+      charges?: number[];
+    };
+    time: number;
+    energyLevel?: number;
+    reactionCoordinate?: number;
+  }[];
+  duration: number;
+  camera: {
+    position: [number, number, number];
+    target: [number, number, number];
+  };
+}
+
 const EXAMPLE_DERIVATIONS = [
   {
     title: 'Product Rule',
@@ -130,8 +151,8 @@ export function MathDerivation() {
       switch (steps[currentStep].visualization.transformType) {
         case 'translation':
           setCurrentTransform({
-            x: before.x + (after.x - before.x) * progress,
-            y: before.y + (after.y - before.y) * progress,
+            x: (before.start?.[0] || 0) + ((after.end?.[0] || 0) - (before.start?.[0] || 0)) * progress,
+            y: (before.start?.[1] || 0) + ((after.end?.[1] || 0) - (before.start?.[1] || 0)) * progress,
             angle: 0,
             scale: 1
           });
@@ -140,7 +161,7 @@ export function MathDerivation() {
           setCurrentTransform({
             x: 0,
             y: 0,
-            angle: before.angle + (after.angle - before.angle) * progress,
+            angle: (before.start?.[0] || 0) + ((after.end?.[0] || 0) - (before.start?.[0] || 0)) * progress,
             scale: 1
           });
           break;
@@ -149,7 +170,7 @@ export function MathDerivation() {
             x: 0,
             y: 0,
             angle: 0,
-            scale: before.scale + (after.scale - before.scale) * progress
+            scale: (before.start?.[0] || 1) + ((after.end?.[0] || 1) - (before.start?.[0] || 1)) * progress
           });
           break;
       }
@@ -223,7 +244,12 @@ export function MathDerivation() {
                     key={i}
                     x={data.before.start?.[0] || 0}
                     y={data.before.start?.[1] || 0}
-                    color={{ ...Theme.blue, alpha: Math.max(0, (1 - (t % 1)) / scale) }}
+                    color={{
+                      r: Theme.blue.r,
+                      g: Theme.blue.g,
+                      b: Theme.blue.b,
+                      alpha: Math.max(0, (1 - (t % 1)) / scale)
+                    }}
                     size={15 * scale * (t % 1)}
                   />
                 ))}
@@ -519,3 +545,58 @@ export function MathDerivation() {
     </div>
   );
 }
+
+const validateAnimationConfig = (config: any): AnimationConfig => {
+  if (!config || typeof config !== 'object') {
+    throw new Error('Invalid animation configuration format');
+  }
+
+  return {
+    type: config.type || 'mechanism',
+    frames: Array.isArray(config.frames) 
+      ? config.frames.map((frame: any) => ({
+          molecules: {
+            positions: Array.isArray(frame.molecules?.positions)
+              ? frame.molecules.positions
+              : [[0, 0, 0]],
+            rotations: Array.isArray(frame.molecules?.rotations)
+              ? frame.molecules.rotations
+              : [[0, 0, 0]],
+            bonds: Array.isArray(frame.molecules?.bonds)
+              ? frame.molecules.bonds
+              : [],
+            elements: Array.isArray(frame.molecules?.elements)
+              ? frame.molecules.elements
+              : ['H'],
+            charges: Array.isArray(frame.molecules?.charges)
+              ? frame.molecules.charges
+              : undefined
+          },
+          time: typeof frame.time === 'number' ? frame.time : 0,
+          energyLevel: typeof frame.energyLevel === 'number' 
+            ? frame.energyLevel 
+            : undefined,
+          reactionCoordinate: typeof frame.reactionCoordinate === 'number'
+            ? frame.reactionCoordinate
+            : undefined
+        }))
+      : [{
+          molecules: {
+            positions: [[0, 0, 0]],
+            rotations: [[0, 0, 0]],
+            bonds: [],
+            elements: ['H']
+          },
+          time: 0
+        }],
+    duration: typeof config.duration === 'number' ? config.duration : 5000,
+    camera: {
+      position: Array.isArray(config.camera?.position)
+        ? config.camera.position
+        : [0, 0, 10],
+      target: Array.isArray(config.camera?.target)
+        ? config.camera.target
+        : [0, 0, 0]
+    }
+  };
+};

@@ -19,7 +19,7 @@ export function PDFViewer({ file, onTextExtracted }: PDFViewerProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [dimensions, setDimensions] = useState({
     width: 'auto',
-    height: 500
+    height: '500px'
   });
   const previousDimensions = useRef(dimensions);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -61,7 +61,7 @@ export function PDFViewer({ file, onTextExtracted }: PDFViewerProps) {
     minHeight: 200,
     maxHeight: window.innerHeight - 200,
     direction: 'vertical',
-    onHeightResize: (height) => setDimensions(prev => ({ ...prev, height })),
+    onHeightResize: (height) => setDimensions(prev => ({ ...prev, height: `${height}px` })),
   });
 
   // Handle corner resize
@@ -80,8 +80,8 @@ export function PDFViewer({ file, onTextExtracted }: PDFViewerProps) {
       const newHeight = Math.max(200, Math.min(window.innerHeight - 200, startHeight + deltaY));
       
       setDimensions({
-        width: newWidth,
-        height: newHeight
+        width: `${newWidth}px`,
+        height: `${newHeight}px`
       });
     };
 
@@ -100,8 +100,8 @@ export function PDFViewer({ file, onTextExtracted }: PDFViewerProps) {
     if (!isFullscreen) {
       previousDimensions.current = dimensions;
       setDimensions({
-        width: window.innerWidth - 48, // Account for padding
-        height: window.innerHeight - 48
+        width: `${window.innerWidth - 48}px`, // Account for padding
+        height: `${window.innerHeight - 48}px`
       });
     } else {
       setDimensions(previousDimensions.current);
@@ -136,7 +136,7 @@ export function PDFViewer({ file, onTextExtracted }: PDFViewerProps) {
           </button>
           
           <span className="text-sm">
-            Page {pageNumber.toString()} of {numPages?.toString() || '?'}
+            Page {String(pageNumber)} of {numPages ? String(numPages) : '?'}
           </span>
           
           <button

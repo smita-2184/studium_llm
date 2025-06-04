@@ -378,7 +378,7 @@ Format the response as JSON:
       ctx.clearRect(0, 0, width, height);
 
       // Calculate current state based on time
-      const timeStep = Math.floor(time * 60) % config.visualization.timeSteps.length;
+      const timeStep = Math.floor(time * 60) % config.visualization.data.timeSteps.length;
       const currentState = config.visualization.data.molecules[timeStep];
 
       // Draw molecules
@@ -418,8 +418,8 @@ Format the response as JSON:
       });
 
       // Draw energy profile if available
-      if (config.visualization.energyProfile) {
-        drawEnergyProfile(ctx, config.visualization.energyProfile, timeStep);
+      if (config.visualization.data.energyProfile) {
+        drawEnergyProfile(ctx, config.visualization.data.energyProfile, timeStep);
       }
 
       // Update time
