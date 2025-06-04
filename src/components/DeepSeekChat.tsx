@@ -249,7 +249,7 @@ function ChatMessage({ message, isStreaming }: ChatMessageProps) {
             h1: ({ children }) => <h1 className="text-2xl font-bold mb-4">{children}</h1>,
             h2: ({ children }) => <h2 className="text-xl font-bold mb-3">{children}</h2>,
             h3: ({ children }) => <h3 className="text-lg font-bold mb-2">{children}</h3>,
-            code: ({ inline, children }) => 
+            code: ({ inline = false, children }: { inline?: boolean; children: React.ReactNode }) => 
               inline ? (
                 <code className="bg-[#2C2C2E] px-1 rounded">{children}</code>
               ) : (
@@ -264,12 +264,7 @@ function ChatMessage({ message, isStreaming }: ChatMessageProps) {
             ),
           }}
         >
-          {message.content.split('$').map((part, i) => {
-            if (i % 2 === 1) {
-              return <BlockMath key={i} math={part} />;
-            }
-            return <span key={i}>{part}</span>;
-          })}
+          {message.content}
         </ReactMarkdown>
 
         {message.thoughts && !isStreaming && (
@@ -390,6 +385,12 @@ export function DeepSeekChat() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!state.isLoading && state.messages.length > 0) {
+      audioFadeRef.current?.();
+    }
+  }, [state.isLoading, state.messages.length]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || state.isLoading) return;
@@ -476,9 +477,6 @@ export function DeepSeekChat() {
               Thinking...
             </div>
           </div>
-        )}
-        {!state.isLoading && state.messages.length > 0 && (
-          audioFadeRef.current?.()
         )}
         <div ref={messagesEndRef} />
       </div>

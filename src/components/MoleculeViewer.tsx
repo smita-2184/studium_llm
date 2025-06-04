@@ -87,12 +87,9 @@ export function MoleculeViewer() {
 
     script.onload = () => {
       if (viewerRef.current) {
-        const options = {
-          backgroundColor: 'white',
-          antialias: true,
-          defaultcolors: $3Dmol.rasmolElementColors
-        };
-        viewer.current = $3Dmol.createViewer(viewerRef.current, options);
+        viewer.current = $3Dmol.createViewer(viewerRef.current);
+        viewer.current.setBackgroundColor('white');
+        // set other options if needed
       }
     };
 
@@ -126,7 +123,7 @@ export function MoleculeViewer() {
     if (!viewer.current) return;
     
     viewer.current.clear();
-    showMolecule(molecule || 'H2O', style);
+    showMolecule(molecule || 'H2O');
   };
 
   const fetchMoleculeInfo = async (name: string) => {

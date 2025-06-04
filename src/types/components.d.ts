@@ -30,7 +30,9 @@ declare module 'mafs' {
   export const Text: React.FC<any>;
   export const Transform: React.FC<any>;
   export const Vector: React.FC<any>;
-  export const Line: React.FC<any>;
+  export const Line: React.FC<any> & {
+    Segment: React.FC<any>;
+  };
 }
 
 declare module 'mathjs' {
