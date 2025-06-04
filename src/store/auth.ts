@@ -4,15 +4,15 @@ import { collection, query, where, getDocs, doc, setDoc, serverTimestamp } from 
 
 interface User {
   id: string;
+  role: string;
+  createdAt: Date | any; // Allow FieldValue
+  lastLogin: Date | any; // Allow FieldValue
   username: string;
-  password: string;
   course: string;
   gender: string;
   major: string;
-  role: string;
   semester: number;
-  createdAt: Date;
-  lastLogin: Date;
+  password: string;
 }
 
 interface AuthState {
